@@ -136,3 +136,141 @@ session을 통해 자신이 만든 그래프를 실행 할 수 있음
 
 클라이언트에서 작성된그래프 -> Master에서 Worker에게 분배
 
+## 5. 텐서플로 세션
+
+> 텐서플로에서 데이터의 처리단위는 텐서(tensor)이다. 
+>
+> 일종의 다차원 배열의 객체
+
+````python
+import tensorflow as tf
+a=tf.constant(17.5)
+b=tf.constant(5.0)
+c = tf.add(a,b)
+print(c)
+#Tensor("Add:0", shape=(), dtype=float32)
+````
+
+
+
+![](python&tensor.assets/a3.PNG)
+
+tf.constant()와 tf.add()를 이용해서 수행한 명령어는 위와같은 그래프를 정의한것이고, 명령을 수행하는 것은 아님
+
+`연산을 수행하기 위해서는 a,b에 데이터를 넣어 흐름(flow)이 이루어지게 만들어야 하는`데 이 동작이 **세션(Session)**이다
+
+
+
+> Session은 실제 값을 대입한 그래프가 동작하도록 하는 역할.
+>
+> 위의 식을 실행시키기 위해서는 tf.Session()을 사용해야한다. 
+
+````python
+import tensorflow as tf
+a=tf.constant(17.5)
+b=tf.constant(5.0)
+c=tf.add(a,b)
+sess = tf.Session()
+sess.run(c)
+#22.5
+````
+
+## 6.빅 데이터, K-평균(K-Means)
+
+> k-means : 비지도 학습 알고리즘
+
+#### 1. 사전준비
+
+- 클러스터링을 수행할 데이터의 주제결정
+- 얼마나 많은 클러스터를 만들지 고민
+- 데이터준비
+- 클러스터링을 수행하기 위한 방법 선택
+
+#### 2. K-means 수행과정
+
+1. 중심(centroid)에 가까운 데이터를 클러스터에 포함
+2. 중심(centroid)을 클러스터의 중앙으로 이동
+
+두과정을 반복수행 -> 완전하게 군집화된 클러스터들을 얻을 수 있음 
+
+더이상 중심의 위치가 변하지 않을 때 까지 반복하는 것이 일반적
+
+#### 3. 무작위 중심값 선택 알고리즘
+
+데이터를 각 클러스터중에 가장 가까운 클러스터(거리)에 속하도록 배정해주는 것
+
+![](python&tensor.assets/a4-1578293532507.PNG)
+
+이후  더 완벽한 클러스터링을 위해 중심의 위치를 데이터의 중간으로 이동시키게됨
+
+![](python&tensor.assets/a5.PNG)
+
+이작업을 분류가 완벽하게 될 때 까지 진행함
+
+# 7. 빅 데이터 K 평균(K-Means) 구현하기
+
+````python
+from sklearn.cluster import KMeans
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+````
+
+필요한 패키지들을 임포트
+
+````python
+df = pd.DataFrame(columns=['x','y'])
+import random
+for i in range(30):
+    df.loc[i] = [random.randint(1,10),random.randint(1,10)]
+````
+
+x,y의 컬럼이 1~10까지의 랜덤 정수를 가지는 dataframe을 만듬
+
+#### 데이터 시각화
+
+````python
+sns.lmplot('x','y', data=df, fit_reg=False, scatter_kws={'s':100})
+plt.title('K-means Example')
+plt.xlabel('x')
+plt.ylabel('y')
+````
+
+![](python&tensor.assets/a6.PNG)
+
+#### K-means를 활용한 클러스터링
+
+````python
+points = df.values 
+#데이터프레임을 넘파이 객체로 초기화
+kmeans = KMeans(n_cluster=4).fit(points)
+#데이터를 기반으로 K-means 알고리즘을 수행해 클러스터4개를 생성 
+kmeans.cluster_centers_
+#각 클러스터들의 중심위치를 구함
+````
+
+![](python&tensor.assets/a7.PNG)
+
+````python
+kmeans.labels_
+#각 데이터가 속한 클러스터를 확인
+````
+
+![](python&tensor.assets/a8.PNG)
+
+````python
+df['cluster'] = kmeans.labels_
+#df에 cluster컬럼을 추가
+df.head()
+````
+
+![](python&tensor.assets/a9.PNG)
+
+````python
+sns.lmplot('x','y', data=df, fit_reg=False, scatter_kws={'s':150}, hue='cluster')
+#cluster를 
+````
+
+![](python&tensor.assets/a10.PNG)
